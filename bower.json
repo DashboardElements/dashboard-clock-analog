@@ -1,0 +1,28 @@
+{
+  "name": "dashboard-clock-analog",
+  "version": "0.0.1",
+  "authors": [
+    "Barrett K. Harber <barrett.harber@gmail.com>",
+  ],
+  "description": "An analog clock.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "seed"
+  ],
+  "main": "dashboard-clock-analog.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/<USERNAME>/seed-element/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0",
+    "dashboard-layout": "DashboardElements/dashboard-layout"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "^4.0.0"
+  }
+}
