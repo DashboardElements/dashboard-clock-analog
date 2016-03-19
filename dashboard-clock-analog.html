@@ -128,7 +128,7 @@ Example:
 
       properties: {
         /**
-         * How often to update the hand rotations (in case the machine is
+         * How often to update the hand rotations, in seconds, (in case the machine is
          * asleep)
          */
         updateInterval: {
@@ -142,8 +142,8 @@ Example:
       ready: function() {
         var radius = 110;
         var outerRadius = radius - 12;
-        var numbers = this.$.numbers;
-        var ticks = this.$.ticks;
+        var numbers = Polymer.dom(this.$.numbers);
+        var ticks = Polymer.dom(this.$.ticks);
         var rotation;
         var number;
         var angle;
@@ -151,45 +151,33 @@ Example:
         this._setHandRotations();
         setInterval(this._setHandRotations.bind(this), this.updateInterval * 1000);
 
-        function cE(type) {
-          return document.createElementNS("http://www.w3.org/2000/svg", type);
-        }
-
-        function createMark(group, outerRadius, length, rotation) {
-          var mark = cE('line');
-          mark.setAttribute('x1', outerRadius - length);
-          mark.setAttribute('x2', outerRadius);
-          mark.setAttribute('y1', '0');
-          mark.setAttribute('y2', '0');
-          mark.setAttribute('transform', 'rotate(' + rotation + ')');
-          Polymer.dom(group).appendChild(mark);
-        }
-
         for (var i = 0, j; i < 12; i++) {
-          number = cE('text');
+          number = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           angle = Math.PI / 6 * i;
-          number.setAttribute('x', radius * Math.cos(angle));
-          number.setAttribute('y', radius * Math.sin(angle));
+          number.setAttribute('x', (radius * Math.cos(angle)).toString());
+          number.setAttribute('y', (radius * Math.sin(angle)).toString());
           number.innerHTML = ((i + 2) % 12 + 1);
-          Polymer.dom(numbers).appendChild(number);
+          numbers.appendChild(number);
           rotation = i * 30;
-          createMark(ticks, outerRadius, 16, rotation);
+          this._createMark(ticks, outerRadius, 16, rotation);
 
           for (j = 1; j < 5; j++) {
-            createMark(ticks, outerRadius, 8, rotation + j * 6);
+            this._createMark(ticks, outerRadius, 8, rotation + j * 6);
           }
         }
       },
 
       // Element Behavior
 
-	    /**
-         * Sets the rotations for the clock hands
-         * @private
-         */
+      /**
+       * Sets the rotations for the clock hands
+       *
+       * @private
+       */
       _setHandRotations: function() {
         var dtg = new Date();
         var hands = {};
+
         hands.second = (dtg.getSeconds() + dtg.getMilliseconds() / 1000) / 60;
         hands.minute = (dtg.getMinutes() + hands.second) / 60;
         hands.hour = (dtg.getHours() % 12 + hands.minute) / 12;
@@ -199,6 +187,27 @@ Example:
         }
 
         this.updateStyles();
+      },
+
+      /**
+       * Creates a minute/second mark around the clock
+       *
+       * @param group {HTMLElement} The SVG group Polymer DOM
+       * @param outerRadius {number} The outer radius
+       * @param length {number} The length of the mark
+       * @param rotation {number} The rotation the mark
+       * @private
+       */
+      _createMark: function(group, outerRadius, length, rotation) {
+        var mark = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        mark.setAttribute('x1', (outerRadius - length).toString());
+        mark.setAttribute('x2', outerRadius.toString());
+        mark.setAttribute('y1', '0');
+        mark.setAttribute('y2', '0');
+        mark.setAttribute('transform', 'rotate(' + rotation + ')');
+
+        group.appendChild(mark);
       }
     });
   </script>
