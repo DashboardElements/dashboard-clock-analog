@@ -1,0 +1,214 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../dashboard-layout/dashboard-layout.html">
+
+<!--
+An analog clock.
+
+Example:
+
+    <dashboard-clock-analog></dashboard-clock-analog>
+
+@demo demo/index.html
+@hero hero.svg
+-->
+
+<dom-module id="dashboard-clock-analog">
+  <template>
+    <style>
+      :host {
+        @apply(--layout);
+        @apply(--buffer);
+        @apply(--round);
+        color: var(--foreground-color, black);
+      }
+
+      :host, svg {
+        @apply(--height-8);
+        @apply(--width-8);
+      }
+
+      svg > g {
+        transform: translate(calc((var(--unit) * 8 - var(--displacement)) / 2), calc((var(--unit) * 8 - var(--displacement)) / 2));
+      }
+
+      circle {
+        stroke: var(--foreground-color);
+        stroke-width: 2px;
+      }
+
+      #numbers {
+        transform: translate(0, 0.35em);
+      }
+
+      #numbers > text {
+        fill: var(--foreground-color, black);
+        text-anchor: middle;
+      }
+
+      #ticks > line {
+        stroke: var(--foreground-color, black);
+      }
+
+      #hands {
+        stroke: var(--foreground-color, black);
+        stroke-width: 4px;
+        transform: rotate(-90deg);
+      }
+
+      line {
+        animation: handrotation linear;
+      }
+
+      #hour {
+        transform: rotate(var(--hour-rotation, 0));
+      }
+
+      #hour > line {
+        animation-duration: 86400s;
+      }
+
+      #minute {
+        transform: rotate(var(--minute-rotation, 0));
+      }
+
+      #minute > line {
+        animation-duration: 3600s;
+      }
+
+      #second {
+        transform: rotate(var(--second-rotation, 0));
+      }
+
+      #second > line {
+        animation-duration: 60s;
+        stroke: var(--secondhand-color, red);
+        stroke-width: 2px;
+      }
+
+      @keyframes handrotation {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+    </style>
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <g>
+        <g id="numbers"/>
+        <g id="ticks"/>
+        <g id="hands">
+          <g id="hour">
+            <line x1="-6" x2="60" y1="0" y2="0"/>
+          </g>
+          <g id="minute">
+            <line x1="-9" x2="90" y1="0"  y2="0"/>
+          </g>
+          <g id="second">
+            <line x1="-12" x2="120" y1="0" y2="0"/>
+          </g>
+        </g>
+        <circle r="4"/>
+      </g>
+    </svg>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dashboard-clock-analog',
+
+      properties: {
+        /**
+         * How often to update the hand rotations, in seconds, (in case the machine is
+         * asleep)
+         */
+        updateInterval: {
+          type: Number,
+          value: 60
+        }
+      },
+
+      // Element Lifecycle
+
+      ready: function() {
+        var radius = 110;
+        var outerRadius = radius - 12;
+        var numbers = Polymer.dom(this.$.numbers);
+        var ticks = Polymer.dom(this.$.ticks);
+        var rotation;
+        var number;
+        var angle;
+
+        this._setHandRotations();
+        setInterval(this._setHandRotations.bind(this), this.updateInterval * 1000);
+
+        for (var i = 0, j; i < 12; i++) {
+          number = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          angle = Math.PI / 6 * i;
+          number.setAttribute('x', (radius * Math.cos(angle)).toString());
+          number.setAttribute('y', (radius * Math.sin(angle)).toString());
+          number.innerHTML = ((i + 2) % 12 + 1);
+          numbers.appendChild(number);
+          rotation = i * 30;
+          this._createMark(ticks, outerRadius, 16, rotation);
+
+          for (j = 1; j < 5; j++) {
+            this._createMark(ticks, outerRadius, 8, rotation + j * 6);
+          }
+        }
+      },
+
+      // Element Behavior
+
+      /**
+       * Sets the rotations for the clock hands
+       *
+       * @private
+       */
+      _setHandRotations: function() {
+        var dtg = new Date();
+        var hands = {};
+
+        hands.second = (dtg.getSeconds() + dtg.getMilliseconds() / 1000) / 60;
+        hands.minute = (dtg.getMinutes() + hands.second) / 60;
+        hands.hour = (dtg.getHours() % 12 + hands.minute) / 12;
+
+        for (var key in hands) {
+          this.customStyle['--' + key + '-rotation'] = (hands[key]) + 'turn';
+        }
+
+        this.updateStyles();
+      },
+
+      /**
+       * Creates a minute/second mark around the clock
+       *
+       * @param group {HTMLElement} The SVG group Polymer DOM
+       * @param outerRadius {number} The outer radius
+       * @param length {number} The length of the mark
+       * @param rotation {number} The rotation the mark
+       * @private
+       */
+      _createMark: function(group, outerRadius, length, rotation) {
+        var mark = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        mark.setAttribute('x1', (outerRadius - length).toString());
+        mark.setAttribute('x2', outerRadius.toString());
+        mark.setAttribute('y1', '0');
+        mark.setAttribute('y2', '0');
+        mark.setAttribute('transform', 'rotate(' + rotation + ')');
+
+        group.appendChild(mark);
+      }
+    });
+  </script>
+</dom-module>
